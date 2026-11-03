@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../data/jadwal_kuliah.dart';
 import '../models/catatan.dart';
 import '../viewmodels/catatan_view_model.dart';
 
@@ -19,10 +20,22 @@ class _FormCatatanPageState extends State<FormCatatanPage> {
   late final TextEditingController _isi;
   bool _menyimpan = false;
 
+  /// Mata kuliah yang sedang berlangsung saat form dibuka (null jika tidak ada).
+  JadwalKuliah? _jadwalAktif;
+
+  /// True jika kolom mata kuliah terisi otomatis dan dikunci.
+  /// Hanya berlaku untuk catatan baru; saat mengubah catatan, isi lama dipertahankan.
+  bool get _otomatis => widget.awal == null && _jadwalAktif != null;
+
   @override
   void initState() {
     super.initState();
-    _mataKuliah = TextEditingController(text: widget.awal?.mataKuliah ?? '');
+    if (widget.awal == null) {
+      _jadwalAktif = cariJadwalAktif();
+    }
+    _mataKuliah = TextEditingController(
+      text: widget.awal?.mataKuliah ?? _jadwalAktif?.namaMk ?? '',
+    );
     _judul = TextEditingController(text: widget.awal?.judul ?? '');
     _isi = TextEditingController(text: widget.awal?.isi ?? '');
   }
@@ -73,13 +86,44 @@ class _FormCatatanPageState extends State<FormCatatanPage> {
     );
   }
 
+  /// Kolom mata kuliah:
+  /// - Ada kuliah aktif  -> terisi otomatis sesuai jadwal dan tidak perlu diketik.
+  /// - Tidak ada kuliah  -> bisa diketik atau dipilih dari daftar mata kuliah.
+  Widget _inputMataKuliah() {
+    final jadwal = _jadwalAktif;
+    return TextFormField(
+      controller: _mataKuliah,
+      readOnly: _otomatis,
+      decoration: InputDecoration(
+        labelText: 'Mata kuliah',
+        helperText: _otomatis
+            ? 'Terisi otomatis: ${jadwal!.namaHari} ${jadwal.jam} - ${jadwal.ruang}'
+            : 'Tidak ada kuliah yang sedang berlangsung. Pilih dari daftar atau ketik.',
+        helperMaxLines: 2,
+        suffixIcon: _otomatis
+            ? const Icon(Icons.schedule)
+            : PopupMenuButton<String>(
+                icon: const Icon(Icons.arrow_drop_down),
+                tooltip: 'Pilih mata kuliah',
+                onSelected: (nama) => _mataKuliah.text = nama,
+                itemBuilder: (_) => [
+                  for (final nama in daftarNamaMataKuliah)
+                    PopupMenuItem(value: nama, child: Text(nama)),
+                ],
+              ),
+      ),
+      validator: (teks) => (teks == null || teks.trim().isEmpty)
+          ? 'Mata kuliah wajib diisi' : null,
+    );
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: Text(widget.awal == null
             ? 'Tambah Catatan' : 'Ubah Catatan')),
         body: ListView(padding: const EdgeInsets.all(20), children: [
           Form(key: _formKey, child: Column(children: [
-            _input(_mataKuliah, 'Mata kuliah'),
+            _inputMataKuliah(),
             const SizedBox(height: 14),
             _input(_judul, 'Judul'),
             const SizedBox(height: 14),
