@@ -23,13 +23,27 @@ class CatatanViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Catatan yang ditampilkan di halaman daftar (sudah terfilter).
+  // ---- Fitur: urutkan catatan (terbaru / terlama) ----
+  bool _terbaruDulu = true;
+  bool get terbaruDulu => _terbaruDulu;
+
+  void setUrutan({required bool terbaruDulu}) {
+    _terbaruDulu = terbaruDulu;
+    notifyListeners();
+  }
+
+  /// Catatan yang ditampilkan di halaman daftar (terfilter lalu terurut).
   List<Catatan> get catatanTampil {
     final kunci = _kataKunci.trim().toLowerCase();
-    if (kunci.isEmpty) return catatan;
-    return List.unmodifiable(
-      _catatan.where((c) => c.judul.toLowerCase().contains(kunci)),
-    );
+    final hasil = _catatan
+        .where((c) => kunci.isEmpty || c.judul.toLowerCase().contains(kunci))
+        .toList();
+    hasil.sort((a, b) {
+      var urut = a.tanggal.compareTo(b.tanggal);
+      if (urut == 0) urut = (a.id ?? 0).compareTo(b.id ?? 0);
+      return _terbaruDulu ? -urut : urut;
+    });
+    return List.unmodifiable(hasil);
   }
 
   Future<void> muatCatatan() async {

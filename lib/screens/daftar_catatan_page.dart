@@ -23,7 +23,23 @@ class _DaftarCatatanPageState extends State<DaftarCatatanPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Daftar Catatan')),
+        appBar: AppBar(
+          title: const Text('Daftar Catatan'),
+          actions: [
+            Consumer<CatatanViewModel>(
+              builder: (context, vm, _) => PopupMenuButton<bool>(
+                icon: const Icon(Icons.sort),
+                tooltip: 'Urutkan',
+                initialValue: vm.terbaruDulu,
+                onSelected: (nilai) => vm.setUrutan(terbaruDulu: nilai),
+                itemBuilder: (_) => const [
+                  PopupMenuItem(value: true, child: Text('Terbaru dulu')),
+                  PopupMenuItem(value: false, child: Text('Terlama dulu')),
+                ],
+              ),
+            ),
+          ],
+        ),
         body: Column(children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
