@@ -1,101 +1,156 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-void main() => runApp(const StudyLogApp());
+void main() {
+  runApp(ChangeNotifierProvider(
+    create: (_) => CatatanStore(),
+    child: const StudyLogApp(),
+  ));
+}
+
+class CatatanMini {
+  final String mataKuliah;
+  final String judul;
+  final String isi;
+  const CatatanMini(this.mataKuliah, this.judul, this.isi);
+}
+
+class CatatanStore extends ChangeNotifier {
+  final List<CatatanMini> _data = [];
+  List<CatatanMini> get data => List.unmodifiable(_data);
+
+  void tambah(CatatanMini catatan) {
+    _data.add(catatan);
+    notifyListeners();
+  }
+}
 
 class StudyLogApp extends StatelessWidget {
   const StudyLogApp({super.key});
-
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'StudyLog | Praktikum 1',
-      theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true),
-      home: const CatatanFormSederhana(),
-    );
-  }
+  Widget build(BuildContext context) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'StudyLog | Praktikum 2',
+        theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true),
+        home: const BerandaPage(),
+      );
 }
 
-class CatatanFormSederhana extends StatefulWidget {
-  const CatatanFormSederhana({super.key});
-
+class BerandaPage extends StatelessWidget {
+  const BerandaPage({super.key});
   @override
-  State<CatatanFormSederhana> createState() => _CatatanFormSederhanaState();
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: const Text('StudyLog')),
+        body: Center(child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.menu_book_rounded, size: 72),
+            const SizedBox(height: 12),
+            const Text('Catatan perkuliahan', style: TextStyle(fontSize: 24)),
+            const SizedBox(height: 20),
+            FilledButton(onPressed: () => Navigator.push(
+              context, MaterialPageRoute(builder: (_) => const DaftarPage())),
+              child: const Text('Buka Daftar Catatan')),
+          ],
+        )),
+      );
 }
 
-class _CatatanFormSederhanaState extends State<CatatanFormSederhana> {
-  final _formKey = GlobalKey<FormState>();
-  final _mataKuliah = TextEditingController();
+class DaftarPage extends StatelessWidget {
+  const DaftarPage({super.key});
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: const Text('Daftar Catatan')),
+        body: Consumer<CatatanStore>(builder: (context, store, _) {
+          if (store.data.isEmpty) {
+            return const Center(child: Text('Belum ada catatan. Tambahkan melalui tombol +.'));
+          }
+          return ListView.builder(
+            itemCount: store.data.length,
+            itemBuilder: (context, index) {
+              final item = store.data[index];
+              return ListTile(
+                title: Text(item.judul),
+                subtitle: Text(item.mataKuliah),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => DetailPage(catatan: item))),
+              );
+            },
+          );
+        }),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const FormPage())),
+          child: const Icon(Icons.add),
+        ),
+      );
+}
+
+class DetailPage extends StatelessWidget {
+  final CatatanMini catatan;
+  const DetailPage({super.key, required this.catatan});
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: const Text('Detail Catatan')),
+        body: Padding(padding: const EdgeInsets.all(20), child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(catatan.mataKuliah, style: Theme.of(context).textTheme.labelLarge),
+            const SizedBox(height: 12),
+            Text(catatan.judul, style: Theme.of(context).textTheme.headlineMedium),
+            const Divider(height: 32),
+            Text(catatan.isi),
+          ],
+        )),
+      );
+}
+
+class FormPage extends StatefulWidget {
+  const FormPage({super.key});
+  @override
+  State<FormPage> createState() => _FormPageState();
+}
+
+class _FormPageState extends State<FormPage> {
+  final _form = GlobalKey<FormState>();
+  final _mk = TextEditingController();
   final _judul = TextEditingController();
   final _isi = TextEditingController();
-  String? _hasil;
 
   @override
   void dispose() {
-    _mataKuliah.dispose();
-    _judul.dispose();
-    _isi.dispose();
+    _mk.dispose(); _judul.dispose(); _isi.dispose();
     super.dispose();
   }
 
-  void _simpanSementara() {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() {
-      _hasil = '${_mataKuliah.text.trim()} | ${_judul.text.trim()}';
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Data ditampilkan (belum tersimpan permanen).')),
-    );
-  }
-
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('StudyLog - Form Catatan')),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          const Text('Praktikum 1: State & Interaksi',
-              style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-          Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: _mataKuliah,
-                  decoration: const InputDecoration(labelText: 'Mata kuliah', border: OutlineInputBorder()),
-                  validator: (nilai) => (nilai == null || nilai.trim().isEmpty)
-                      ? 'Mata kuliah wajib diisi' : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _judul,
-                  decoration: const InputDecoration(labelText: 'Judul catatan', border: OutlineInputBorder()),
-                  validator: (nilai) => (nilai == null || nilai.trim().isEmpty)
-                      ? 'Judul wajib diisi' : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _isi,
-                  maxLines: 4,
-                  decoration: const InputDecoration(labelText: 'Isi catatan', border: OutlineInputBorder()),
-                  validator: (nilai) => (nilai == null || nilai.trim().isEmpty)
-                      ? 'Isi catatan wajib diisi' : null,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 18),
-          FilledButton.icon(onPressed: _simpanSementara, icon: const Icon(Icons.save),
-              label: const Text('Tampilkan Catatan')),
-          if (_hasil != null) ...[
-            const SizedBox(height: 18),
-            Card(child: Padding(padding: const EdgeInsets.all(16),
-              child: Text('Hasil input: $_hasil'))),
-          ],
-        ],
-      ),
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: const Text('Tambah Catatan')),
+        body: ListView(padding: const EdgeInsets.all(20), children: [
+          Form(key: _form, child: Column(children: [
+            _field(_mk, 'Mata kuliah'),
+            const SizedBox(height: 12),
+            _field(_judul, 'Judul'),
+            const SizedBox(height: 12),
+            _field(_isi, 'Isi', baris: 4),
+          ])),
+          const SizedBox(height: 20),
+          FilledButton(onPressed: () {
+            if (!_form.currentState!.validate()) return;
+            context.read<CatatanStore>().tambah(CatatanMini(
+              _mk.text.trim(), _judul.text.trim(), _isi.text.trim()));
+            Navigator.pop(context);
+          }, child: const Text('Simpan Sementara')),
+        ]),
+      );
+
+  Widget _field(TextEditingController controller, String label, {int baris = 1}) {
+    return TextFormField(
+      controller: controller, maxLines: baris,
+      decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
+      validator: (nilai) => (nilai == null || nilai.trim().isEmpty)
+          ? '$label wajib diisi' : null,
     );
   }
 }
