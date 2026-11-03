@@ -1,25 +1,52 @@
 # StudyLog — Aplikasi Catatan Perkuliahan
 
 Aplikasi Android berbasis Flutter untuk mencatat materi kuliah secara offline
-(data tersimpan di SQLite lokal). Dibuat untuk **Praktikum 01 Flutter** mata kuliah
-**Pemrograman Aplikasi Bergerak** — Universitas Mulia, Kelas **IFB5J**.
+(data tersimpan di SQLite lokal). Mata kuliah
+**Pemrograman Aplikasi Bergerak** — Universitas Mulia Balikpapan, Kelas **IFB5J**.
 
 ## Anggota Kelompok
 
 | Nama | NIM | Kontribusi utama |
 | --- | --- | --- |
-| Rizky Ilham Febrianto | 2211002 | Setup proyek, M1 (form interaktif), fitur isi otomatis mata kuliah dari jadwal |
+| Rizky Ilham Febrianto | 2211002 | Setup proyek, M1 (form interaktif), M3 (SQLite & CRUD), fitur isi otomatis mata kuliah |
 | Ahmad Bagus Rudyanto | 2411004 | M2 (navigasi & Provider), fitur cari catatan |
-| Rahma Aulia Sarita Zul Putri | 2411013 | M3 (SQLite & CRUD), fitur urutkan catatan, README |
+| Rahma Aulia Sarita Zul Putri | 2411013 | Fitur urutkan catatan, README |
 
 ## Fitur
 
 - Tambah, lihat, ubah, dan hapus catatan (CRUD) dengan penyimpanan SQLite.
 - Validasi form dan dialog konfirmasi hapus.
-- **Mata kuliah terisi otomatis** berdasarkan hari dan jam perkuliahan yang sedang aktif
-  (jadwal kelas IFB5J). Di luar jam kuliah, mata kuliah dapat dipilih dari daftar.
+- **Mata kuliah terisi otomatis** berdasarkan hari dan jam perkuliahan yang sedang aktif. Di luar jam kuliah, mata kuliah dapat dipilih dari daftar.
 - **Cari catatan** berdasarkan judul.
 - **Urutkan catatan** (terbaru / terlama).
+
+## Tangkapan Layar
+
+### Mata kuliah terisi otomatis
+
+Saat ada perkuliahan yang berlangsung, kolom **Mata kuliah** terisi dan terkunci sesuai jadwal
+(lengkap dengan hari, jam, dan ruang). Di luar jam kuliah, kolom dapat diketik atau dipilih dari daftar.
+
+| Saat jam kuliah (terisi otomatis) | Di luar jam kuliah (pilih manual) |
+| --- | --- |
+| ![Mata kuliah terisi otomatis](docs/screenshots/auto-isi-aktif.png) | ![Mata kuliah dipilih manual](docs/screenshots/auto-isi-manual.png) |
+
+### Urutkan catatan
+
+Ikon urutkan di AppBar halaman Daftar Catatan menampilkan pilihan **Terbaru dulu** dan **Terlama dulu**.
+
+| Menu urutkan | Terbaru dulu | Terlama dulu |
+| --- | --- | --- |
+| ![Menu urutkan](docs/screenshots/urut-menu.png) | ![Urutan terbaru dulu](docs/screenshots/urut-terbaru.png) | ![Urutan terlama dulu](docs/screenshots/urut-terlama.png) |
+
+### Pencarian berdasarkan judul
+
+Kolom **Cari berdasarkan judul** menyaring daftar sesuai kata yang diketik. Jika tidak ada yang cocok,
+muncul pesan bahwa catatan tidak ditemukan.
+
+| Hasil pencarian | Judul tidak ditemukan |
+| --- | --- |
+| ![Hasil pencarian judul](docs/screenshots/cari-hasil.png) | ![Pencarian tidak ditemukan](docs/screenshots/cari-kosong.png) |
 
 ## Cara Menjalankan
 
@@ -54,6 +81,7 @@ lib/
 test/
   catatan_model_test.dart
   jadwal_kuliah_test.dart
+docs/screenshots/   (tangkapan layar untuk README)
 ```
 
 Alur: UI → ViewModel (ChangeNotifier/Provider) → Repository → DatabaseHelper (sqflite) → SQLite.
